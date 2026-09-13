@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dierenquiz — Nederlands leren</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --sage:#eaf2e0;
+    --sage-deep:#3f6c51;
+    --sage-mid:#7fa876;
+    --barn:#e2963a;
+    --barn-deep:#b96f21;
+    --cream:#fffdf6;
+    --ink:#2b3a2f;
+    --error:#c1523b;
+    --line:#d6e3c9;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: var(--sage);
+    background-image:
+      radial-gradient(circle at 8% 12%, rgba(127,168,118,0.18) 0, transparent 40%),
+      radial-gradient(circle at 92% 88%, rgba(226,150,58,0.14) 0, transparent 45%);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display:flex;
+    justify-content:center;
+    padding: 28px 16px 60px;
+  }
+
+  .app{ width:100%; max-width: 560px; }
+
+  header{ text-align:left; margin-bottom: 22px; }
+  header .kicker{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    color: var(--sage-deep);
+    letter-spacing: 0.02em;
+  }
+  h1{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size: 34px;
+    line-height:1.05;
+    margin: 4px 0 6px;
+    color: var(--sage-deep);
+  }
+  header p{ margin:0; font-size:15px; color:#5a6b57; max-width: 46ch; }
+
+  nav.tabs{
+    display:flex;
+    gap:8px;
+    margin: 22px 0 18px;
+    background: rgba(255,255,255,0.5);
+    padding:5px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+  }
+  nav.tabs button{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding: 10px 8px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size: 14px;
+    color: #5a6b57;
+    border-radius: 10px;
+    cursor:pointer;
+    transition: background .15s ease, color .15s ease;
+  }
+  nav.tabs button.active{
+    background: var(--sage-deep);
+    color: var(--cream);
+  }
+
+  .card{
+    background: var(--cream);
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    padding: 28px 24px;
+    box-shadow: 0 1px 0 rgba(63,108,81,0.05);
+  }
+
+  .score-row{
+    display:flex;
+    justify-content: space-between;
+    align-items:baseline;
+    margin-bottom: 18px;
+    font-size: 13px;
+    color: #5a6b57;
+  }
+  .score-row .score{
+    font-family:'Baloo 2', sans-serif;
+    font-size: 20px;
+    color: var(--barn-deep);
+    font-weight:700;
+  }
+
+  .stage{
+    text-align:center;
+    padding: 18px 0 10px;
+  }
+  .emoji{
+    font-size: 88px;
+    line-height:1;
+    display:inline-block;
+    filter: drop-shadow(0 6px 10px rgba(63,108,81,0.18));
+  }
+
+  .hint-line{
+    margin: 18px 0 4px;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 26px;
+    letter-spacing: 0.06em;
+    color: var(--sage-deep);
+    min-height: 34px;
+  }
+  .hint-line .gap{ opacity: 0.35; }
+
+  form.answer-row{
+    display:flex;
+    gap:8px;
+    margin-top: 16px;
+  }
+  input[type=text]{
+    flex:1;
+    padding: 13px 14px;
+    border-radius: 12px;
+    border: 2px solid var(--line);
+    font-family:'Inter',sans-serif;
+    font-size: 16px;
+    background: #fff;
+    color: var(--ink);
+    outline:none;
+    transition: border-color .15s ease;
+  }
+  input[type=text]:focus{ border-color: var(--sage-mid); }
+  input[type=text].wrong{ border-color: var(--error); }
+  input[type=text].right{ border-color: var(--sage-deep); }
+
+  .btn{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size: 15px;
+    border:none;
+    border-radius: 12px;
+    padding: 13px 18px;
+    cursor:pointer;
+    transition: transform .08s ease, filter .12s ease;
+  }
+  .btn:active{ transform: scale(0.97); }
+  .btn-primary{ background: var(--sage-deep); color:#fff; }
+  .btn-primary:hover{ filter: brightness(1.08); }
+  .btn-ghost{
+    background: transparent;
+    border: 2px solid var(--barn);
+    color: var(--barn-deep);
+  }
+  .btn-ghost:hover{ background: rgba(226,150,58,0.1); }
+  .btn:disabled{ opacity:0.45; cursor:default; }
+
+  .row-actions{
+    display:flex;
+    gap:10px;
+    margin-top: 14px;
+    justify-content: center;
+  }
+
+  .feedback{
+    margin-top: 14px;
+    min-height: 24px;
+    font-weight:600;
+    font-size: 14px;
+    text-align:center;
+  }
+  .feedback.good{ color: var(--sage-deep); }
+  .feedback.bad{ color: var(--error); }
+
+  .progress-dots{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .dot{
+    width:8px; height:8px; border-radius:50%;
+    background: var(--line);
+  }
+  .dot.done{ background: var(--sage-mid); }
+  .dot.current{ background: var(--barn); }
+
+  .summary{ text-align:center; }
+  .summary .big{
+    font-family:'Baloo 2', sans-serif;
+    font-size: 46px;
+    color: var(--barn-deep);
+    margin: 6px 0 2px;
+  }
+  .summary p{ color:#5a6b57; margin: 0 0 18px; }
+
+  .het-choice{
+    display:flex;
+    gap:12px;
+    margin-top: 22px;
+  }
+  .het-btn{
+    flex:1;
+    padding: 18px 10px;
+    border-radius: 14px;
+    border: 2px solid var(--line);
+    background:#fff;
+    font-family:'Baloo 2', sans-serif;
+    font-size: 22px;
+    color: var(--sage-deep);
+    cursor:pointer;
+    transition: border-color .12s ease, background .12s ease;
+  }
+  .het-btn:hover{ border-color: var(--sage-mid); }
+  .het-btn.correct{ background: #e5f2df; border-color: var(--sage-deep); }
+  .het-btn.incorrect{ background: #f7e3dd; border-color: var(--error); }
+
+  .word-display{
+    text-align:center;
+    font-family:'Baloo 2', sans-serif;
+    font-size: 30px;
+    color: var(--ink);
+    margin: 6px 0 4px;
+  }
+
+  footer.note{
+    text-align:center;
+    font-size: 12px;
+    color: #7f8f7a;
+    margin-top: 18px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .btn{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="kicker">Woordenschat · dieren</div>
+    <h1>De dierenquiz</h1>
+    <p>Typ het juiste Nederlandse woord bij elk dier, met het juiste lidwoord. Vraag een hint als je vastzit — maar dat kost punten.</p>
+  </header>
+
+  <nav class="tabs">
+    <button id="tab-spell" class="active">Schrijf het woord</button>
+    <button id="tab-het">De of het?</button>
+  </nav>
+
+  <div class="card" id="card"></div>
+
+  <footer class="note">18 dieren · gemaakt om Nederlands te oefenen</footer>
+</div>
+
+<script>
+const ANIMALS = [
+  {emoji:"🐱", answer:"de kat"},
+  {emoji:"🐶", answer:"de hond"},
+  {emoji:"🐟", answer:"de vis"},
+  {emoji:"🕷️", answer:"de spin"},
+  {emoji:"🐺", answer:"de wolf"},
+  {emoji:"🐔", answer:"de kip"},
+  {emoji:"🐷", answer:"het varken"},
+  {emoji:"🐰", answer:"het konijn"},
+  {emoji:"🐴", answer:"het paard"},
+  {emoji:"🐄", answer:"de koe"},
+  {emoji:"🐭", answer:"de muis"},
+  {emoji:"🐦", answer:"de vogel"},
+  {emoji:"🦆", answer:"de eend"},
+  {emoji:"🐑", answer:"het schaap"},
+  {emoji:"🐢", answer:"de schildpad"},
+  {emoji:"🐹", answer:"de cavia"},
+  {emoji:"🦊", answer:"de vos"},
+  {emoji:"🐐", answer:"de geit"},
+];
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+// ---------- Section 1: spelling quiz ----------
+const spellState = {
+  order: shuffle(ANIMALS),
+  index: 0,
+  score: 0,
+  hintsUsed: 0,
+  wrongAttempts: 0,
+  finished: false,
+};
+
+function revealAnswer(answer, n){
+  let shown = 0;
+  let out = "";
+  for(const ch of answer){
+    if(ch === " "){ out += "  "; continue; }
+    if(shown < n){ out += ch; }
+    else { out += "_"; }
+    shown++;
+  }
+  return out;
+}
+
+function renderSpell(){
+  const card = document.getElementById('card');
+  const st = spellState;
+
+  if(st.finished){
+    card.innerHTML = `
+      <div class="summary">
+        <div class="kicker">Klaar!</div>
+        <div class="big">${st.score} punten</div>
+        <p>Je hebt alle ${st.order.length} dieren gehad.</p>
+        <button class="btn btn-primary" id="restart">Nog een keer</button>
+      </div>
+    `;
+    document.getElementById('restart').onclick = () => {
+      spellState.order = shuffle(ANIMALS);
+      spellState.index = 0;
+      spellState.score = 0;
+      spellState.finished = false;
+      renderSpell();
+    };
+    return;
+  }
+
+  const item = st.order[st.index];
+  const dots = st.order.map((_, i) => {
+    let cls = 'dot';
+    if(i < st.index) cls += ' done';
+    if(i === st.index) cls += ' current';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+
+  card.innerHTML = `
+    <div class="score-row">
+      <span>Dier ${st.index + 1} / ${st.order.length}</span>
+      <span class="score">${st.score} pt</span>
+    </div>
+    <div class="stage">
+      <div class="emoji">${item.emoji}</div>
+      <div class="hint-line" id="hintline">${st.hintsUsed > 0 ? revealAnswer(item.answer, st.hintsUsed) : '&nbsp;'}</div>
+    </div>
+    <form class="answer-row" id="answerForm" autocomplete="off">
+      <input type="text" id="answerInput" placeholder="bv. de kat" />
+      <button type="submit" class="btn btn-primary">Controleer</button>
+    </form>
+    <div class="row-actions">
+      <button class="btn btn-ghost" id="hintBtn" ${st.hintsUsed >= item.answer.replace(' ','').length ? 'disabled' : ''}>Hint (+1 letter, −2 pt)</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="progress-dots">${dots}</div>
+  `;
+
+  const input = document.getElementById('answerInput');
+  input.focus();
+
+  document.getElementById('hintBtn').onclick = () => {
+    st.hintsUsed++;
+    renderSpell();
+    document.getElementById('answerInput').focus();
+  };
+
+  document.getElementById('answerForm').onsubmit = (e) => {
+    e.preventDefault();
+    const val = input.value.trim().toLowerCase().replace(/\s+/g,' ');
+    const correct = item.answer.toLowerCase();
+    const feedback = document.getElementById('feedback');
+
+    if(val === correct){
+      input.classList.add('right');
+      const pts = Math.max(10 - st.hintsUsed * 2 - st.wrongAttempts, 2);
+      st.score += pts;
+      feedback.textContent = `Goed zo! +${pts} punten`;
+      feedback.className = 'feedback good';
+      input.disabled = true;
+      document.getElementById('hintBtn').disabled = true;
+      setTimeout(() => {
+        st.index++;
+        st.hintsUsed = 0;
+        st.wrongAttempts = 0;
+        if(st.index >= st.order.length){ st.finished = true; }
+        renderSpell();
+      }, 700);
+    } else {
+      input.classList.add('wrong');
+      st.wrongAttempts++;
+      feedback.textContent = 'Niet helemaal — probeer het nog eens.';
+      feedback.className = 'feedback bad';
+      input.select();
+    }
+  };
+}
+
+// ---------- Section 2: de / het practice ----------
+const hetWords = ANIMALS.map(a => {
+  const [article, ...rest] = a.answer.split(' ');
+  return { emoji: a.emoji, noun: rest.join(' '), article };
+});
+
+const hetState = {
+  order: shuffle(hetWords),
+  index: 0,
+  score: 0,
+  total: 0,
+  finished: false,
+};
+
+function renderHet(){
+  const card = document.getElementById('card');
+  const st = hetState;
+
+  if(st.finished){
+    card.innerHTML = `
+      <div class="summary">
+        <div class="kicker">Klaar!</div>
+        <div class="big">${st.score} / ${st.order.length * 5}</div>
+        <p>Je hebt alle ${st.order.length} woorden geoefend.</p>
+        <button class="btn btn-primary" id="restartHet">Nog een keer</button>
+      </div>
+    `;
+    document.getElementById('restartHet').onclick = () => {
+      hetState.order = shuffle(hetWords);
+      hetState.index = 0;
+      hetState.score = 0;
+      hetState.finished = false;
+      renderHet();
+    };
+    return;
+  }
+
+  const item = st.order[st.index];
+
+  card.innerHTML = `
+    <div class="score-row">
+      <span>Woord ${st.index + 1} / ${st.order.length}</span>
+      <span class="score">${st.score} pt</span>
+    </div>
+    <div class="stage">
+      <div class="emoji">${item.emoji}</div>
+      <div class="word-display">${item.noun}</div>
+    </div>
+    <div class="het-choice">
+      <button class="het-btn" data-choice="de">de</button>
+      <button class="het-btn" data-choice="het">het</button>
+    </div>
+    <div class="feedback" id="feedbackHet"></div>
+  `;
+
+  document.querySelectorAll('.het-btn').forEach(btn => {
+    btn.onclick = () => {
+      const choice = btn.dataset.choice;
+      const feedback = document.getElementById('feedbackHet');
+      document.querySelectorAll('.het-btn').forEach(b => b.disabled = true);
+
+      if(choice === item.article){
+        btn.classList.add('correct');
+        st.score += 5;
+        feedback.textContent = 'Correct!';
+        feedback.className = 'feedback good';
+      } else {
+        btn.classList.add('incorrect');
+        document.querySelector(`.het-btn[data-choice="${item.article}"]`).classList.add('correct');
+        feedback.textContent = `Niet correct — het is "${item.article} ${item.noun}".`;
+        feedback.className = 'feedback bad';
+      }
+
+      setTimeout(() => {
+        st.index++;
+        if(st.index >= st.order.length){ st.finished = true; }
+        renderHet();
+      }, 900);
+    };
+  });
+}
+
+// ---------- Tabs ----------
+const tabSpell = document.getElementById('tab-spell');
+const tabHet = document.getElementById('tab-het');
+
+tabSpell.onclick = () => {
+  tabSpell.classList.add('active');
+  tabHet.classList.remove('active');
+  renderSpell();
+};
+tabHet.onclick = () => {
+  tabHet.classList.add('active');
+  tabSpell.classList.remove('active');
+  renderHet();
+};
+
+renderSpell();
+</script>
+</body>
+</html>
