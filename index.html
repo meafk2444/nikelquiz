@@ -252,19 +252,19 @@
 <body>
 <div class="app">
   <header>
-    <div class="kicker">Woordenschat · dieren</div>
-    <h1>De dierenquiz</h1>
-    <p>Typ het juiste Nederlandse woord bij elk dier, met het juiste lidwoord. Vraag een hint als je vastzit — maar dat kost punten.</p>
+    <div class="kicker">Vocabulaire · animaux</div>
+    <h1>Le quiz des animaux</h1>
+    <p>Écris le mot néerlandais correct pour chaque animal, avec le bon article (de/het). Demande un indice si tu bloques — mais ça coûte des points.</p>
   </header>
 
   <nav class="tabs">
-    <button id="tab-spell" class="active">Schrijf het woord</button>
-    <button id="tab-het">De of het?</button>
+    <button id="tab-spell" class="active">Écris le mot</button>
+    <button id="tab-het">De ou het ?</button>
   </nav>
 
   <div class="card" id="card"></div>
 
-  <footer class="note">18 dieren · gemaakt om Nederlands te oefenen</footer>
+  <footer class="note">18 animaux · pour s'entraîner au néerlandais</footer>
 </div>
 
 <script>
@@ -327,10 +327,10 @@ function renderSpell(){
   if(st.finished){
     card.innerHTML = `
       <div class="summary">
-        <div class="kicker">Klaar!</div>
-        <div class="big">${st.score} punten</div>
-        <p>Je hebt alle ${st.order.length} dieren gehad.</p>
-        <button class="btn btn-primary" id="restart">Nog een keer</button>
+        <div class="kicker">Terminé !</div>
+        <div class="big">${st.score} points</div>
+        <p>Tu as fait les ${st.order.length} animaux.</p>
+        <button class="btn btn-primary" id="restart">Recommencer</button>
       </div>
     `;
     document.getElementById('restart').onclick = () => {
