@@ -237,6 +237,82 @@
     margin: 6px 0 4px;
   }
 
+  .flip-scene{
+    perspective: 1200px;
+    margin: 10px auto 6px;
+    max-width: 320px;
+  }
+  .flip-card{
+    position: relative;
+    width: 100%;
+    height: 220px;
+    cursor: pointer;
+  }
+  .flip-card-inner{
+    position:relative;
+    width:100%; height:100%;
+    text-align:center;
+    transition: transform 0.5s;
+    transform-style: preserve-3d;
+  }
+  .flip-card.flipped .flip-card-inner{
+    transform: rotateY(180deg);
+  }
+  .flip-face{
+    position:absolute;
+    inset:0;
+    backface-visibility:hidden;
+    border-radius: 16px;
+    border: 2px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: 10px;
+    background: #fff;
+  }
+  .flip-face.front .emoji{ font-size: 72px; filter:none; }
+  .flip-face.front .tap-hint{
+    font-size: 12px;
+    color: #8a9a86;
+    font-weight:600;
+  }
+  .flip-face.back{
+    transform: rotateY(180deg);
+    background: var(--sage-deep);
+    color: #fff;
+  }
+  .flip-face.back .word{
+    font-family:'Baloo 2', sans-serif;
+    font-size: 28px;
+    font-weight:700;
+  }
+  .flip-face.back .article-tag{
+    font-size: 12px;
+    text-transform: none;
+    background: rgba(255,255,255,0.18);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight:600;
+  }
+
+  .card-nav{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    margin-top: 18px;
+    gap: 10px;
+  }
+  .card-nav .counter{
+    font-size: 13px;
+    color: #5a6b57;
+    font-weight:600;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .flip-card-inner{ transition:none; }
+  }
+
   footer.note{
     text-align:center;
     font-size: 12px;
@@ -260,6 +336,7 @@
   <nav class="tabs">
     <button id="tab-spell" class="active">Écris le mot</button>
     <button id="tab-het">De ou het ?</button>
+    <button id="tab-cards">Apprendre</button>
   </nav>
 
   <div class="card" id="card"></div>
@@ -353,19 +430,19 @@ function renderSpell(){
 
   card.innerHTML = `
     <div class="score-row">
-      <span>Dier ${st.index + 1} / ${st.order.length}</span>
-      <span class="score">${st.score} pt</span>
+      <span>Animal ${st.index + 1} / ${st.order.length}</span>
+      <span class="score">${st.score} pts</span>
     </div>
     <div class="stage">
       <div class="emoji">${item.emoji}</div>
       <div class="hint-line" id="hintline">${st.hintsUsed > 0 ? revealAnswer(item.answer, st.hintsUsed) : '&nbsp;'}</div>
     </div>
     <form class="answer-row" id="answerForm" autocomplete="off">
-      <input type="text" id="answerInput" placeholder="bv. de kat" />
-      <button type="submit" class="btn btn-primary">Controleer</button>
+      <input type="text" id="answerInput" placeholder="ex. de kat" />
+      <button type="submit" class="btn btn-primary">Vérifier</button>
     </form>
     <div class="row-actions">
-      <button class="btn btn-ghost" id="hintBtn" ${st.hintsUsed >= item.answer.replace(' ','').length ? 'disabled' : ''}>Hint (+1 letter, −2 pt)</button>
+      <button class="btn btn-ghost" id="hintBtn" ${st.hintsUsed >= item.answer.replace(' ','').length ? 'disabled' : ''}>Indice (+1 lettre, −2 pts)</button>
     </div>
     <div class="feedback" id="feedback"></div>
     <div class="progress-dots">${dots}</div>
@@ -390,7 +467,7 @@ function renderSpell(){
       input.classList.add('right');
       const pts = Math.max(10 - st.hintsUsed * 2 - st.wrongAttempts, 2);
       st.score += pts;
-      feedback.textContent = `Goed zo! +${pts} punten`;
+      feedback.textContent = `Bien joué ! +${pts} points`;
       feedback.className = 'feedback good';
       input.disabled = true;
       document.getElementById('hintBtn').disabled = true;
@@ -404,7 +481,7 @@ function renderSpell(){
     } else {
       input.classList.add('wrong');
       st.wrongAttempts++;
-      feedback.textContent = 'Niet helemaal — probeer het nog eens.';
+      feedback.textContent = 'Pas tout à fait — réessaie.';
       feedback.className = 'feedback bad';
       input.select();
     }
@@ -432,10 +509,10 @@ function renderHet(){
   if(st.finished){
     card.innerHTML = `
       <div class="summary">
-        <div class="kicker">Klaar!</div>
+        <div class="kicker">Terminé !</div>
         <div class="big">${st.score} / ${st.order.length * 5}</div>
-        <p>Je hebt alle ${st.order.length} woorden geoefend.</p>
-        <button class="btn btn-primary" id="restartHet">Nog een keer</button>
+        <p>Tu as fait les ${st.order.length} mots.</p>
+        <button class="btn btn-primary" id="restartHet">Recommencer</button>
       </div>
     `;
     document.getElementById('restartHet').onclick = () => {
@@ -452,8 +529,8 @@ function renderHet(){
 
   card.innerHTML = `
     <div class="score-row">
-      <span>Woord ${st.index + 1} / ${st.order.length}</span>
-      <span class="score">${st.score} pt</span>
+      <span>Mot ${st.index + 1} / ${st.order.length}</span>
+      <span class="score">${st.score} pts</span>
     </div>
     <div class="stage">
       <div class="emoji">${item.emoji}</div>
@@ -475,12 +552,12 @@ function renderHet(){
       if(choice === item.article){
         btn.classList.add('correct');
         st.score += 5;
-        feedback.textContent = 'Correct!';
+        feedback.textContent = 'Correct !';
         feedback.className = 'feedback good';
       } else {
         btn.classList.add('incorrect');
         document.querySelector(`.het-btn[data-choice="${item.article}"]`).classList.add('correct');
-        feedback.textContent = `Niet correct — het is "${item.article} ${item.noun}".`;
+        feedback.textContent = `Pas correct — c'est « ${item.article} ${item.noun} ».`;
         feedback.className = 'feedback bad';
       }
 
@@ -493,19 +570,80 @@ function renderHet(){
   });
 }
 
+// ---------- Section 3: flip cards ----------
+const cardsState = {
+  order: shuffle(ANIMALS),
+  index: 0,
+  flipped: false,
+};
+
+function renderCards(){
+  const card = document.getElementById('card');
+  const st = cardsState;
+  const item = st.order[st.index];
+  const [article, ...rest] = item.answer.split(' ');
+  const noun = rest.join(' ');
+
+  card.innerHTML = `
+    <div class="score-row">
+      <span>Carte ${st.index + 1} / ${st.order.length}</span>
+      <span></span>
+    </div>
+    <div class="flip-scene">
+      <div class="flip-card ${st.flipped ? 'flipped' : ''}" id="flipCard">
+        <div class="flip-card-inner">
+          <div class="flip-face front">
+            <div class="emoji">${item.emoji}</div>
+            <div class="tap-hint">Touche la carte pour voir la réponse</div>
+          </div>
+          <div class="flip-face back">
+            <span class="article-tag">${article}</span>
+            <div class="word">${noun}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-nav">
+      <button class="btn btn-ghost" id="prevCard">Précédent</button>
+      <span class="counter">${st.flipped ? 'Retournée' : 'Non retournée'}</span>
+      <button class="btn btn-primary" id="nextCard">Suivant</button>
+    </div>
+  `;
+
+  document.getElementById('flipCard').onclick = () => {
+    st.flipped = !st.flipped;
+    renderCards();
+  };
+  document.getElementById('prevCard').onclick = () => {
+    st.index = (st.index - 1 + st.order.length) % st.order.length;
+    st.flipped = false;
+    renderCards();
+  };
+  document.getElementById('nextCard').onclick = () => {
+    st.index = (st.index + 1) % st.order.length;
+    st.flipped = false;
+    renderCards();
+  };
+}
+
 // ---------- Tabs ----------
 const tabSpell = document.getElementById('tab-spell');
 const tabHet = document.getElementById('tab-het');
+const tabCards = document.getElementById('tab-cards');
 
-tabSpell.onclick = () => {
-  tabSpell.classList.add('active');
-  tabHet.classList.remove('active');
-  renderSpell();
-};
-tabHet.onclick = () => {
-  tabHet.classList.add('active');
-  tabSpell.classList.remove('active');
-  renderHet();
+function setActiveTab(tab){
+  [tabSpell, tabHet, tabCards].forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+}
+
+tabSpell.onclick = () => { setActiveTab(tabSpell); renderSpell(); };
+tabHet.onclick = () => { setActiveTab(tabHet); renderHet(); };
+tabCards.onclick = () => {
+  setActiveTab(tabCards);
+  cardsState.order = shuffle(ANIMALS);
+  cardsState.index = 0;
+  cardsState.flipped = false;
+  renderCards();
 };
 
 renderSpell();
