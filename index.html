@@ -324,6 +324,12 @@
   @media (prefers-reduced-motion: reduce){
     .btn{ transition:none; }
   }
+
+  @media (max-width: 400px){
+    form.answer-row{ flex-wrap: wrap; }
+    form.answer-row input[type=text]{ flex-basis: 100%; }
+    form.answer-row .btn-primary{ flex: 1; }
+  }
 </style>
 </head>
 <body>
@@ -335,8 +341,8 @@
   </header>
 
   <nav class="tabs">
-    <button id="tab-spell" class="active">Écris le mot</button>
-    <button id="tab-het">De ou het ?</button>
+    <button id="tab-spell" class="active">Animal</button>
+    <button id="tab-het">Déterminant</button>
     <button id="tab-cards">Apprendre</button>
   </nav>
 
@@ -381,19 +387,17 @@ const spellState = {
   order: shuffle(ANIMALS),
   index: 0,
   score: 0,
-  hintsUsed: 0,
+  revealed: new Set(),
   wrongAttempts: 0,
   finished: false,
 };
 
-function revealAnswer(answer, n){
-  let shown = 0;
+function revealAnswer(answer, revealedSet){
   let out = "";
-  for(const ch of answer){
+  for(let i = 0; i < answer.length; i++){
+    const ch = answer[i];
     if(ch === " "){ out += "  "; continue; }
-    if(shown < n){ out += ch; }
-    else { out += "_"; }
-    shown++;
+    out += revealedSet.has(i) ? ch : "_";
   }
   return out;
 }
@@ -415,6 +419,8 @@ function renderSpell(){
       spellState.order = shuffle(ANIMALS);
       spellState.index = 0;
       spellState.score = 0;
+      spellState.revealed = new Set();
+      spellState.wrongAttempts = 0;
       spellState.finished = false;
       renderSpell();
     };
@@ -422,6 +428,7 @@ function renderSpell(){
   }
 
   const item = st.order[st.index];
+  const nonSpaceLen = item.answer.replace(/ /g, '').length;
   const dots = st.order.map((_, i) => {
     let cls = 'dot';
     if(i < st.index) cls += ' done';
@@ -436,14 +443,14 @@ function renderSpell(){
     </div>
     <div class="stage">
       <div class="emoji">${item.emoji}</div>
-      <div class="hint-line" id="hintline">${st.hintsUsed > 0 ? revealAnswer(item.answer, st.hintsUsed) : '&nbsp;'}</div>
+      <div class="hint-line" id="hintline">${st.revealed.size > 0 ? revealAnswer(item.answer, st.revealed) : '&nbsp;'}</div>
     </div>
     <form class="answer-row" id="answerForm" autocomplete="off">
       <input type="text" id="answerInput" placeholder="ex. de kat" />
       <button type="submit" class="btn btn-primary">Vérifier</button>
     </form>
     <div class="row-actions">
-      <button class="btn btn-ghost" id="hintBtn" ${st.hintsUsed >= item.answer.replace(' ','').length ? 'disabled' : ''}>Indice (+1 lettre, −2 pts)</button>
+      <button class="btn btn-ghost" id="hintBtn" ${st.revealed.size >= nonSpaceLen ? 'disabled' : ''}>Indice (+1 lettre, −2 pts)</button>
     </div>
     <div class="feedback" id="feedback"></div>
     <div class="progress-dots">${dots}</div>
@@ -453,7 +460,14 @@ function renderSpell(){
   input.focus();
 
   document.getElementById('hintBtn').onclick = () => {
-    st.hintsUsed++;
+    const available = [];
+    for(let i = 0; i < item.answer.length; i++){
+      if(item.answer[i] !== ' ' && !st.revealed.has(i)) available.push(i);
+    }
+    if(available.length > 0){
+      const pick = available[Math.floor(Math.random() * available.length)];
+      st.revealed.add(pick);
+    }
     renderSpell();
     document.getElementById('answerInput').focus();
   };
@@ -466,7 +480,7 @@ function renderSpell(){
 
     if(val === correct){
       input.classList.add('right');
-      const pts = Math.max(10 - st.hintsUsed * 2 - st.wrongAttempts, 2);
+      const pts = Math.max(10 - st.revealed.size * 2 - st.wrongAttempts, 2);
       st.score += pts;
       feedback.textContent = `Bien joué ! +${pts} points`;
       feedback.className = 'feedback good';
@@ -474,7 +488,7 @@ function renderSpell(){
       document.getElementById('hintBtn').disabled = true;
       setTimeout(() => {
         st.index++;
-        st.hintsUsed = 0;
+        st.revealed = new Set();
         st.wrongAttempts = 0;
         if(st.index >= st.order.length){ st.finished = true; }
         renderSpell();
